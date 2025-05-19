@@ -81,15 +81,15 @@ export default function MostrarHorariosPorDia() {
       .join(" ");
 
   return (
-    <div className="p-4 space-y-4 min-h-screen w-screen bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200">
-      <h1 className="text-3xl font-bold text-center">
+    <div className="p-4 space-y-4 min-h-screen w-screen bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 h-[calc(100vh-150px)] overflow-auto pb-20">
+      <h1 className="text-3xl font-bold text-center"> 
         Horarios <br /> de <br />{" "}
         {diaActual === "lunesAViernes"
           ? "Lunes a Viernes"
           : diaActual.charAt(0).toUpperCase() + diaActual.slice(1)}
       </h1>
 
-      <div className="space-y-6 h-[450px] flex flex-col overflow-scroll">
+      <div className="space-y-6 flex flex-col">
   {Object.entries(referenciasAgrupadas).map(([base, refs], i) => (
     <div key={i}>
     
