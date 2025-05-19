@@ -10,7 +10,7 @@ export function useObtenerHorarios() {
   useEffect(() => {
     const obtenerHorarios = async () => {
       try {
-        const res = await fetch("http://70236255.netlify.app/horarios.json"); // Usá tu endpoint real
+        const res = await fetch("https://70236255.netlify.app/horarios.json"); // Usá tu endpoint real
         const data = await res.json();
         setHorarios(data);
       } catch (error) {
