@@ -124,7 +124,7 @@ export default function MostrarHorariosPorDia() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 left-0 w-full h-full bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 shadow-lg px-4 overflow-y-auto z-40"
+            className="fixed top-0 left-0 w-full h-full bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 shadow-lg px-4 overflow-y-auto z-40 h-screen"
           >
             <button
               className="fixed top-4 right-4 bg-red-600 text-white rounded px-3 py-1 shadow z-50"
