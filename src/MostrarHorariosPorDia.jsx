@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useObtenerHorarios } from "./customHooks/useObtenerHorarios";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -82,7 +82,7 @@ export default function MostrarHorariosPorDia() {
 
   return (
     <div className="p-4 space-y-4 min-h-screen w-screen bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 h-[calc(100vh-150px)] overflow-auto pb-20">
-      <h1 className="text-3xl font-bold text-center"> 
+      <h1 className="text-3xl font-bold text-center text-gray-900"> 
         Horarios <br /> de <br />{" "}
         {diaActual === "lunesAViernes"
           ? "Lunes a Viernes"
@@ -93,10 +93,10 @@ export default function MostrarHorariosPorDia() {
   {Object.entries(referenciasAgrupadas).map(([base, refs], i) => (
     <div key={i}>
     
-      <h2 className="text-lg font-semibold mb-2 text-center">
+      <h2 className="text-lg font-semibold mb-2 text-center text-gray-800">
         Recorridos {capitalizar(base)}
       </h2>
-      <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center items-center">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center items-center text-gray-800">
         {refs.map((ref, j) => {
           const tipo = ref.toLowerCase().includes("vuelta") ? "Vuelta" : "Ida";
           return (
