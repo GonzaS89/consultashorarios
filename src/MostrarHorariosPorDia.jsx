@@ -97,15 +97,40 @@ export default function MostrarHorariosPorDia() {
       .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
       .join(" ");
 
-      
+
+      const [temaOscuro, setTemaOscuro] = useState(() => {
+        const guardado = localStorage.getItem("temaOscuro");
+        return guardado ? JSON.parse(guardado) : false;
+      });
+
+  useEffect(() => {
+    localStorage.setItem("temaOscuro", JSON.stringify(temaOscuro));
+  }, [temaOscuro]);
 
   return (
-    <div className="min-h-screen w-screen bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 h-[calc(100vh-150px)] overflow-auto pb-20 flex flex-col justify-around">
-      <h1 className="text-5xl font-extrabold text-center mb-10 text-gray-800 tracking-wide drop-shadow-sm">
+    <div
+    className={`${
+      temaOscuro
+        ? "bg-gray-900 text-white"
+        : "bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 text-gray-800"
+    } min-h-screen w-screen h-[calc(100vh-150px)] overflow-auto pb-20 flex flex-col justify-around transition-colors duration-500 ease-in-out`}
+  >
+  
+
+
+      <button
+        onClick={() => setTemaOscuro(!temaOscuro)}
+        className={`fixed right-0 bottom-32 self-end mx-4 mt-4 px-4 py-4  rounded-full shadow text-3xl font-semibold transition-all
+    ${temaOscuro ? 'from-blue-200 via-purple-200 to-pink-200 ' : 'bg-gray-800'} text-white hover:bg-gray-700`}
+      >
+        {temaOscuro ? "☀️" : "🌙"}
+      </button>
+
+      <h1 className="text-5xl font-extrabold text-center mb-10 tracking-wide drop-shadow-sm">
         Kioraicoletivo
       </h1>
 
-      <h1 className="text-xl font-semibold uppercase text-center text-gray-900 lg:text-3xl">
+      <h1 className="text-xl font-semibold uppercase text-center lg:text-3xl">
         Horarios de{" "}
         {diaActual === "lunesAViernes"
           ? "Lunes a Viernes"
@@ -118,7 +143,7 @@ export default function MostrarHorariosPorDia() {
             key={i}
             className="flex flex-col justify-between bg-cyan-100 bg-opacity-30 p-4 h-[230px] rounded-2xl shadow-lg border-2 border-gray-100"
           >
-            <h2 className="text-base font-bold text-center text-gray-700 uppercase tracking-wide mb-3 flex items-center justify-center h-[60px] lg:text-xl">
+            <h2 className="text-base font-bold text-center uppercase tracking-wide mb-3 flex items-center justify-center h-[60px] lg:text-xl">
               {capitalizar(base)}
             </h2>
 
@@ -154,7 +179,7 @@ export default function MostrarHorariosPorDia() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 left-0 w-full h-full bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 shadow-lg px-4 overflow-y-auto z-40"
+            className={`fixed top-0 left-0 w-full h-full bg-gradient-to-b ${temaOscuro ? 'bg-gray-700' : 'from-blue-200 via-purple-200 to-pink-200'} shadow-lg px-4 overflow-y-auto z-40`}
           >
             <button
               className="fixed top-4 right-4 bg-red-600 text-white rounded px-3 py-1 shadow z-50"
@@ -174,11 +199,16 @@ export default function MostrarHorariosPorDia() {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.3 }}
-                      className={`rounded-2xl p-5 mb-5 transition-all duration-300 shadow-md
-                        ${horarioDestacado === item.nombre
-                          ? "bg-gradient-to-r from-purple-600 to-purple-800 text-white border border-purple-900 shadow-2xl ring-2 ring-purple-400"
-                          : "bg-white bg-opacity-60 text-gray-800 border border-transparent hover:bg-opacity-80 hover:border-purple-300 hover:shadow-md"
-                        }`}
+                      className={`rounded-2xl p-5 mb-5 transition-all duration-300 shadow-md ${
+                        horarioDestacado === item.nombre
+                          ? temaOscuro
+                            ? "bg-purple-700 text-white border border-purple-900"
+                            : "bg-gradient-to-r from-purple-600 to-purple-800 text-white border border-purple-900 shadow-2xl ring-2 ring-purple-400"
+                          : temaOscuro
+                            ? "bg-gray-800 text-white border border-gray-700"
+                            : "bg-white bg-opacity-60 text-gray-800 border border-transparent hover:bg-opacity-80 hover:border-purple-300 hover:shadow-md"
+                      }`}
+                      
                     >
                       <div className="mb-3 font-semibold text-lg tracking-wide">
                         <p>
