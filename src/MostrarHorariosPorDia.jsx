@@ -121,7 +121,7 @@ export default function MostrarHorariosPorDia() {
       <button
         onClick={() => setTemaOscuro(!temaOscuro)}
         className={`fixed right-0 bottom-32 self-end mx-4 mt-4 px-4 py-4  rounded-full shadow text-3xl font-semibold transition-all
-    ${temaOscuro ? 'from-blue-200 via-purple-200 to-pink-200 ' : 'bg-gray-800'} text-white hover:bg-gray-700`}
+    ${temaOscuro ? 'bg-white' : 'bg-gray-800'} text-white hover:bg-gray-700`}
       >
         {temaOscuro ? "☀️" : "🌙"}
       </button>
