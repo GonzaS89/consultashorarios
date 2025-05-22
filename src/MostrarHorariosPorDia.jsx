@@ -141,13 +141,13 @@ export default function MostrarHorariosPorDia() {
         {Object.entries(referenciasAgrupadas).map(([base, refs], i) => (
           <div
             key={i}
-            className="flex flex-col justify-between bg-cyan-100 bg-opacity-30 p-4 h-[230px] rounded-2xl shadow-lg border-2 border-gray-100"
+            className={`flex flex-col justify-between ${temaOscuro ? 'bg-slate-500 border-gray-700' :'bg-cyan-100'} bg-opacity-10 p-4 h-[230px] rounded-2xl shadow-lg border-2`}
           >
             <h2 className="text-base font-bold text-center uppercase tracking-wide mb-3 flex items-center justify-center h-[60px] lg:text-xl">
               {capitalizar(base)}
             </h2>
 
-            <div className="flex flex-col gap-3 justify-center items-center text-gray-800 w-full">
+            <div className="flex flex-col gap-3 justify-center items-cente w-full">
               {refs.map((ref, j) => {
                 const tipo = ref.toLowerCase().includes("vuelta") ? "Vuelta" : "Ida";
                 const activo = referencia === ref;
@@ -155,10 +155,10 @@ export default function MostrarHorariosPorDia() {
                 return (
                   <button
                     key={j}
-                    className={`uppercase rounded-xl px-5 py-3 text-sm font-semibold w-full transition-all border shadow-sm
+                    className={`${temaOscuro ? 'bg-gray-700 text-white' : 'bg-white'} uppercase rounded-xl px-5 py-3 text-sm font-semibold w-full transition-all border shadow-sm
                       ${activo
-                        ? "bg-purple-600 text-white border-purple-700 shadow-md"
-                        : "bg-gray-50 text-gray-800 border-gray-300 hover:bg-purple-100 active:bg-purple-200"
+                        ? "bg-purple-600 border-purple-700 shadow-md"
+                        : "bg-gray-50 border-gray-300 hover:bg-purple-100 active:bg-purple-200 hover:text-gray-700"
                       }`}
                     onClick={() => setReferencia(ref)}
                   >
