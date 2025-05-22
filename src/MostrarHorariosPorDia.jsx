@@ -83,7 +83,10 @@ export default function MostrarHorariosPorDia() {
       .join(" ");
 
   return (
-    <div className="p-4 space-y-4 min-h-screen w-screen bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 h-[calc(100vh-150px)] overflow-auto pb-20">
+    <div className="p-4 space-y-4 min-h-screen w-screen bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 h-[calc(100vh-150px)] overflow-auto pb-20 relative">
+    {/* Barra fija inferior de selección de días */}
+
+
       <h1 className="text-3xl font-bold text-center text-gray-900"> 
         Horarios <br /> de <br />{" "}
         {diaActual === "lunesAViernes"
