@@ -63,7 +63,9 @@ export default function MostrarHorariosPorDia() {
   const referenciasAgrupadas = referenciasUnicas.reduce((acc, ref) => {
     const partes = ref.split(" ");
     const tipo = partes[0]; // ida o vuelta
-    const base = partes.slice(1).join(" ")
+    const base = partes
+      .slice(1)
+      .join(" ")
       .toLowerCase()
       .replace(/[-]/g, " ")
       .replace(/\s+/g, " ")
@@ -82,39 +84,42 @@ export default function MostrarHorariosPorDia() {
 
   return (
     <div className="p-4 space-y-4 min-h-screen w-screen bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 h-[calc(100vh-150px)] overflow-auto pb-20">
-      <h1 className="text-3xl font-bold text-center text-gray-900"> 
-        Horarios <br /> de <br />{" "}
-        {diaActual === "lunesAViernes"
-          ? "Lunes a Viernes"
-          : diaActual.charAt(0).toUpperCase() + diaActual.slice(1)}
-      </h1>
+      <h1 className="text-center mb-6">Kioraicoletivo</h1>
+      <p className="text-lg font-bold text-center text-gray-900 uppercase">
+        Horarios de {" "}
+        {diaActual === "lunesAViernes" && "Lunes a viernes"}
+      </p>
 
       <div className="space-y-6 flex flex-col">
-  {Object.entries(referenciasAgrupadas).map(([base, refs], i) => (
-    <div key={i}>
-    
-      <h2 className="text-lg font-semibold mb-2 text-center text-gray-800">
-        Recorridos {capitalizar(base)}
-      </h2>
-      <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center items-center text-gray-800">
-        {refs.map((ref, j) => {
-          const tipo = ref.toLowerCase().includes("vuelta") ? "Vuelta" : "Ida";
-          return (
-            <button
-              key={j}
-              className={`uppercase border rounded px-6 py-4 text-base font-semibold w-full sm:w-auto transition
-                ${referencia === ref ? "bg-gray-300" : "bg-white hover:bg-gray-100"}`}
-              onClick={() => setReferencia(ref)}
-            >
-              {tipo}
-            </button>
-          );
-        })}
+        {Object.entries(referenciasAgrupadas).map(([base, refs], i) => (
+          <div key={i}>
+            <h2 className="text-lg font-semibold mb-2 text-center text-gray-800">
+              Recorridos {capitalizar(base)}
+            </h2>
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center items-center text-gray-800">
+              {refs.map((ref, j) => {
+                const tipo = ref.toLowerCase().includes("vuelta")
+                  ? "Vuelta"
+                  : "Ida";
+                return (
+                  <button
+                    key={j}
+                    className={`uppercase border rounded px-6 py-4 text-base font-semibold w-full sm:w-auto transition
+                ${
+                  referencia === ref
+                    ? "bg-gray-300"
+                    : "bg-white hover:bg-gray-100"
+                }`}
+                    onClick={() => setReferencia(ref)}
+                  >
+                    {tipo}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
-    </div>
-  ))}
-</div>
-
 
       <AnimatePresence>
         {referencia && (
@@ -124,7 +129,7 @@ export default function MostrarHorariosPorDia() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 left-0 w-full h-full bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 shadow-lg px-4 overflow-y-auto z-40 h-screen"
+            className="fixed top-0 left-0 w-full bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 shadow-lg px-4 overflow-y-auto z-40 h-screen"
           >
             <button
               className="fixed top-4 right-4 bg-red-600 text-white rounded px-3 py-1 shadow z-50"
@@ -134,37 +139,42 @@ export default function MostrarHorariosPorDia() {
             </button>
 
             <div className="max-w-2xl mx-auto min-h-screen">
-              {dataDelDia.filter((item) => item.referencia === referencia).length > 0 ? (
+              {dataDelDia.filter((item) => item.referencia === referencia)
+                .length > 0 ? (
                 dataDelDia
                   .filter((item) => item.referencia === referencia)
                   .map((item, index) => (
                     <motion.div
-                    key={index}
-                    ref={(el) => (refsHorarios.current[item.nombre] = el)}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                    className={`rounded-2xl p-5 mb-5 transition-all duration-300 shadow-md
+                      key={index}
+                      ref={(el) => (refsHorarios.current[item.nombre] = el)}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                      className={`rounded-2xl p-5 mb-5 transition-all duration-300 shadow-md
                       ${
                         horarioDestacado === item.nombre
                           ? "bg-gradient-to-r from-purple-600 to-purple-800 text-white border border-purple-900 shadow-2xl ring-2 ring-purple-400"
                           : "bg-white bg-opacity-60 text-gray-800 border border-transparent hover:bg-opacity-80 hover:border-purple-300 hover:shadow-md"
                       }`}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <div className="mb-3 font-semibold text-lg tracking-wide">
-                      <p>
-                        Hora de salida: <span className="font-bold text-xl">{item.nombre} HS.</span>
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-semibold uppercase text-sm tracking-wider">
-                        Recorrido: <span className="text-sm">{item.recorrido.join(" » ")}</span>
-                      </p>
-                    </div>
-                  </motion.div>
-                  
-                  
+                      style={{ cursor: "pointer" }}
+                    >
+                      <div className="mb-3 font-semibold text-lg tracking-wide">
+                        <p>
+                          Hora de salida:{" "}
+                          <span className="font-bold text-xl">
+                            {item.nombre} HS.
+                          </span>
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-semibold uppercase text-sm tracking-wider">
+                          Recorrido:{" "}
+                          <span className="text-sm">
+                            {item.recorrido.join(" » ")}
+                          </span>
+                        </p>
+                      </div>
+                    </motion.div>
                   ))
               ) : (
                 <p>No hay horarios cargados para este día.</p>
