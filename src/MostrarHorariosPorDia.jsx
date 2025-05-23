@@ -18,7 +18,7 @@ export default function MostrarHorariosPorDia() {
   }, []);
 
   const dataDelDia = horarios[diaActual] || [];
-  const referenciasUnicas = [...new Set(dataDelDia.map((h) => h.referencia))];
+  const referenciasUnicas = [...new Set(dataDelDia.map((h) => h.referencia).filter(Boolean))];
 
   const convertirNombreAHoras = (nombre) => {
     if (!nombre) return 0;
@@ -26,10 +26,7 @@ export default function MostrarHorariosPorDia() {
     return horas * 60 + minutos;
   };
 
-  useEffect(() => {
-    if (!referencia) return;
-
-    setHorarioDestacado(null);
+  const encontrarHorarioMasCercano = () => {
     const ahora = new Date();
     const minutosAhora = ahora.getHours() * 60 + ahora.getMinutes();
 
@@ -47,25 +44,43 @@ export default function MostrarHorariosPorDia() {
       }
     });
 
+    return horarioMasCercano;
+  };
+
+  useEffect(() => {
+    if (!referencia) return;
+
+    const actualizarHorario = () => {
+      const horarioMasCercano = encontrarHorarioMasCercano();
+      if (horarioMasCercano) {
+        setHorarioDestacado(horarioMasCercano.nombre);
+      }
+    };
+
+    actualizarHorario();
+
+    const interval = setInterval(actualizarHorario, 1000);
+
+    return () => clearInterval(interval);
+  }, [referencia, dataDelDia]);
+
+  useEffect(() => {
+    if (!referencia) return;
+    const horarioMasCercano = encontrarHorarioMasCercano();
     if (horarioMasCercano) {
       setTimeout(() => {
         const ref = refsHorarios.current[horarioMasCercano.nombre];
         if (ref?.scrollIntoView) {
           ref.scrollIntoView({ behavior: "smooth", block: "center" });
-          setHorarioDestacado(horarioMasCercano.nombre);
-          setTimeout(() => setHorarioDestacado(null), 3000);
         }
       }, 300);
     }
-  }, [referencia, dataDelDia]);
+  }, [referencia]);
 
-  // Agrupar por la parte base de la referencia
   const referenciasAgrupadas = referenciasUnicas.reduce((acc, ref) => {
+    if (!ref) return acc;
     const partes = ref.split(" ");
-    const tipo = partes[0]; // ida o vuelta
-    const base = partes
-      .slice(1)
-      .join(" ")
+    const base = partes.slice(1).join(" ")
       .toLowerCase()
       .replace(/[-]/g, " ")
       .replace(/\s+/g, " ")
@@ -82,34 +97,69 @@ export default function MostrarHorariosPorDia() {
       .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
       .join(" ");
 
-  return (
-    <div className="p-4 space-y-4 min-h-screen w-screen bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 h-[calc(100vh-150px)] overflow-auto pb-20">
-      <h1 className="text-center mb-6">Kioraicoletivo</h1>
-      <p className="text-lg font-bold text-center text-gray-900 uppercase">
-        Horarios de {" "}
-        {diaActual === "lunesAViernes" && "Lunes a viernes"}
-      </p>
 
-      <div className="space-y-6 flex flex-col">
+      const [temaOscuro, setTemaOscuro] = useState(() => {
+        const guardado = localStorage.getItem("temaOscuro");
+        return guardado ? JSON.parse(guardado) : false;
+      });
+
+  useEffect(() => {
+    localStorage.setItem("temaOscuro", JSON.stringify(temaOscuro));
+  }, [temaOscuro]);
+
+  return (
+    <div
+    className={`${
+      temaOscuro
+        ? "bg-gray-900 text-white"
+        : "bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 text-gray-800"
+    } min-h-screen w-screen h-[calc(100vh-150px)] overflow-auto pb-20 flex flex-col justify-around transition-colors duration-500 ease-in-out`}
+  >
+  
+
+
+      <button
+        onClick={() => setTemaOscuro(!temaOscuro)}
+        className={`fixed right-0 bottom-32 self-end mx-4 mt-4 px-4 py-4  rounded-full shadow text-3xl font-semibold transition-all
+    ${temaOscuro ? 'bg-white' : 'bg-gray-800'} text-white hover:bg-gray-700`}
+      >
+        {temaOscuro ? "☀️" : "🌙"}
+      </button>
+
+      <h1 className="text-5xl font-extrabold text-center mb-10 tracking-wide drop-shadow-sm">
+        Kioraicoletivo
+      </h1>
+
+      <h1 className="text-xl font-semibold uppercase text-center lg:text-3xl">
+        Horarios de{" "}
+        {diaActual === "lunesAViernes"
+          ? "Lunes a Viernes"
+          : diaActual.charAt(0).toUpperCase() + diaActual.slice(1)}
+      </h1>
+
+      <div className="px-4 grid grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
         {Object.entries(referenciasAgrupadas).map(([base, refs], i) => (
-          <div key={i}>
-            <h2 className="text-lg font-semibold mb-2 text-center text-gray-800">
-              Recorridos {capitalizar(base)}
+          <div
+            key={i}
+            className={`flex flex-col justify-between ${temaOscuro ? 'bg-slate-500 border-gray-700' :'bg-cyan-100'} bg-opacity-10 p-4 h-[230px] rounded-2xl shadow-lg border-2`}
+          >
+            <h2 className="text-base font-bold text-center uppercase tracking-wide mb-3 flex items-center justify-center h-[60px] lg:text-xl">
+              {capitalizar(base)}
             </h2>
-            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center items-center text-gray-800">
+
+            <div className="flex flex-col gap-3 justify-center items-cente w-full">
               {refs.map((ref, j) => {
-                const tipo = ref.toLowerCase().includes("vuelta")
-                  ? "Vuelta"
-                  : "Ida";
+                const tipo = ref.toLowerCase().includes("vuelta") ? "Vuelta" : "Ida";
+                const activo = referencia === ref;
+
                 return (
                   <button
                     key={j}
-                    className={`uppercase border rounded px-6 py-4 text-base font-semibold w-full sm:w-auto transition
-                ${
-                  referencia === ref
-                    ? "bg-gray-300"
-                    : "bg-white hover:bg-gray-100"
-                }`}
+                    className={`${temaOscuro ? 'bg-gray-700 text-white' : 'bg-white'} uppercase rounded-xl px-5 py-3 text-sm font-semibold w-full transition-all border shadow-sm
+                      ${activo
+                        ? "bg-purple-600 border-purple-700 shadow-md"
+                        : "bg-gray-50 border-gray-300 hover:bg-purple-100 active:bg-purple-200 hover:text-gray-700"
+                      }`}
                     onClick={() => setReferencia(ref)}
                   >
                     {tipo}
@@ -129,7 +179,7 @@ export default function MostrarHorariosPorDia() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 left-0 w-full bg-gradient-to-b from-blue-200 via-purple-200 to-pink-200 shadow-lg px-4 overflow-y-auto z-40 h-screen"
+            className={`fixed top-0 left-0 w-full h-full bg-gradient-to-b ${temaOscuro ? 'bg-gray-700' : 'from-blue-200 via-purple-200 to-pink-200'} shadow-lg px-4 overflow-y-auto z-40`}
           >
             <button
               className="fixed top-4 right-4 bg-red-600 text-white rounded px-3 py-1 shadow z-50"
@@ -150,28 +200,27 @@ export default function MostrarHorariosPorDia() {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.3 }}
-                      className={`rounded-2xl p-5 mb-5 transition-all duration-300 shadow-md
-                      ${
+                      className={`rounded-2xl p-5 mb-5 transition-all duration-300 shadow-md ${
                         horarioDestacado === item.nombre
-                          ? "bg-gradient-to-r from-purple-600 to-purple-800 text-white border border-purple-900 shadow-2xl ring-2 ring-purple-400"
-                          : "bg-white bg-opacity-60 text-gray-800 border border-transparent hover:bg-opacity-80 hover:border-purple-300 hover:shadow-md"
+                          ? temaOscuro
+                            ? "bg-purple-700 text-white border border-purple-900"
+                            : "bg-gradient-to-r from-purple-600 to-purple-800 text-white border border-purple-900 shadow-2xl ring-2 ring-purple-400"
+                          : temaOscuro
+                            ? "bg-gray-800 text-white border border-gray-700"
+                            : "bg-white bg-opacity-60 text-gray-800 border border-transparent hover:bg-opacity-80 hover:border-purple-300 hover:shadow-md"
                       }`}
-                      style={{ cursor: "pointer" }}
+                      
                     >
                       <div className="mb-3 font-semibold text-lg tracking-wide">
                         <p>
                           Hora de salida:{" "}
-                          <span className="font-bold text-xl">
-                            {item.nombre} HS.
-                          </span>
+                          <span className="font-bold text-xl">{item.nombre} HS.</span>
                         </p>
                       </div>
                       <div>
                         <p className="font-semibold uppercase text-sm tracking-wider">
                           Recorrido:{" "}
-                          <span className="text-sm">
-                            {item.recorrido.join(" » ")}
-                          </span>
+                          <span className="text-sm">{item.recorrido.join(" » ")}</span>
                         </p>
                       </div>
                     </motion.div>
