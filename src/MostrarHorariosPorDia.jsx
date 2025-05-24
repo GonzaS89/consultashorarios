@@ -18,7 +18,7 @@ export default function MostrarHorariosPorDia() {
   }, []);
 
   const dataDelDia = horarios[diaActual] || [];
-  const referenciasUnicas = [...new Set(dataDelDia.map((h) => h.referencia))];
+  const referenciasUnicas = [...new Set(dataDelDia.map((h) => h.referencia).filter(Boolean))];
 
   const convertirNombreAHoras = (nombre) => {
     if (!nombre) return 0;
@@ -61,18 +61,20 @@ export default function MostrarHorariosPorDia() {
 
   // Agrupar por la parte base de la referencia
   const referenciasAgrupadas = referenciasUnicas.reduce((acc, ref) => {
+    if (!ref) return acc; // Evitá errores por si se cuela algo raro
     const partes = ref.split(" ");
-    const tipo = partes[0]; // ida o vuelta
+    const tipo = partes[0];
     const base = partes.slice(1).join(" ")
       .toLowerCase()
       .replace(/[-]/g, " ")
       .replace(/\s+/g, " ")
       .trim();
-
+  
     if (!acc[base]) acc[base] = [];
     if (!acc[base].includes(ref)) acc[base].push(ref);
     return acc;
   }, {});
+  
 
   const capitalizar = (texto) =>
     texto
