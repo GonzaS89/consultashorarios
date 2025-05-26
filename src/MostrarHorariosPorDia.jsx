@@ -201,7 +201,7 @@ export default function MostrarHorariosPorDia() {
                   : "bg-white border-gray-200 hover:border-purple-300"
               } border-2`}
             >
-              <h2 className="text-xl font-bold text-center mb-4 flex items-center justify-center gap-2">
+              <h2 className="text-xl font-bold uppercase text-center mb-4 flex items-center justify-center gap-2">
                 <span className="bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
                   {capitalizar(base)}
                 </span>
@@ -253,7 +253,7 @@ export default function MostrarHorariosPorDia() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            transition={{ type: "spring", damping: 25 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
             className={`fixed inset-0 z-40 ${temaOscuro ? 'bg-gray-900' : 'bg-white'} p-6 overflow-y-auto`}
           >
             <div className="max-w-2xl mx-auto relative">
@@ -313,7 +313,7 @@ export default function MostrarHorariosPorDia() {
                               <p className={`text-sm ${
                                 horarioDestacado === item.nombre ? "text-white" : temaOscuro ? "text-gray-300" : "text-gray-600"
                               }`}>
-                                <span className="font-medium">Recorrido:</span> {item.recorrido.join(" → ")}
+                                <span className="font-medium up">Recorrido:</span> <span className="capitalize">{item.recorrido.join(" → ")}</span> 
                               </p>
                             </div>
                           </div>
