@@ -144,7 +144,7 @@ export default function MostrarHorariosPorDia() {
                 ? "bg-gradient-to-r from-purple-600 to-blue-500 text-white"
                 : temaOscuro
                   ? "bg-gray-700 hover:bg-gray-600 text-gray-200"
-                  : "bg-white hover:bg-gray-100"
+                  : "bg-white hover:bg-gray-100 text-gray-700"
             }`}
           >
             Lunes a Viernes
@@ -156,7 +156,7 @@ export default function MostrarHorariosPorDia() {
                 ? "bg-gradient-to-r from-purple-600 to-blue-500 text-white"
                 : temaOscuro
                   ? "bg-gray-700 hover:bg-gray-600 text-gray-200"
-                  : "bg-white hover:bg-gray-100"
+                  : "bg-white hover:bg-gray-100 text-gray-700"
             }`}
           >
             Sábados
@@ -168,7 +168,7 @@ export default function MostrarHorariosPorDia() {
                 ? "bg-gradient-to-r from-purple-600 to-blue-500 text-white"
                 : temaOscuro
                   ? "bg-gray-700 hover:bg-gray-600 text-gray-200"
-                  : "bg-white hover:bg-gray-100"
+                  : "bg-white hover:bg-gray-100 text-gray-700"
             }`}
           >
             Domingos
@@ -301,7 +301,7 @@ export default function MostrarHorariosPorDia() {
                                 ? "bg-gray-700" 
                                 : "bg-gray-100"
                           }`}>
-                            <FcClock className="text-2xl" />
+                            <FcClock className="text-2xl text-gray-800" />
                           </div>
                           <div>
                             <h3 className={`text-lg font-semibold ${
