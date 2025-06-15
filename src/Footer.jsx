@@ -9,6 +9,7 @@ function Footer() {
           <span className="font-semibold ml-1 text-purple-400 hover:text-purple-300 transition-colors duration-200">
             Sinhg Gonzalo
           </span>
+          
         </p>
       </div>
     </footer>
