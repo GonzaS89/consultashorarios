@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useObtenerHorarios } from "./customHooks/useObtenerHorarios";
 import { motion, AnimatePresence } from "framer-motion";
 import { FcClock } from "react-icons/fc";
-import { IoArrowForward } from "react-icons/io5";
-import { FiX } from "react-icons/fi"; // Importamos el ícono de flecha
+import { IoArrowForward, IoSync } from "react-icons/io5";
+import { FiX, FiSun, FiMoon, FiRefreshCw, FiAlertCircle } from "react-icons/fi";
 
 export default function MostrarHorariosPorDia() {
   const horarios = useObtenerHorarios();
@@ -13,7 +13,10 @@ export default function MostrarHorariosPorDia() {
   const [seleccionManual, setSeleccionManual] = useState(false);
   const refsHorarios = useRef({});
 
-  // Efecto para detectar el día actual automáticamente
+  const temaOscuro = localStorage.getItem("temaOscuro") === "true";
+  const [darkMode, setDarkMode] = useState(temaOscuro);
+
+  // Auto-detect day
   useEffect(() => {
     if (!seleccionManual) {
       const dia = new Date().getDay();
@@ -23,19 +26,16 @@ export default function MostrarHorariosPorDia() {
     }
   }, [seleccionManual]);
 
-  const dataDelDia = horarios[diaActual] || [];
-  const referenciasUnicas = [
-    ...new Set(dataDelDia.map((h) => h.referencia).filter(Boolean)),
-  ];
 
-  // Función para convertir nombre de hora a minutos
+  const dataDelDia = horarios[diaActual] || [];
+  const referenciasUnicas = [...new Set(dataDelDia.map((h) => h.referencia).filter(Boolean))];
+
   const convertirNombreAHoras = (nombre) => {
     if (!nombre) return 0;
     const [horas, minutos] = nombre.split(":").map(Number);
     return horas * 60 + minutos;
   };
 
-  // Función para encontrar el horario más cercano al actual
   const encontrarHorarioMasCercano = () => {
     const ahora = new Date();
     const minutosAhora = ahora.getHours() * 60 + ahora.getMinutes();
@@ -57,42 +57,40 @@ export default function MostrarHorariosPorDia() {
     return horarioMasCercano;
   };
 
-  // Efecto para actualizar el horario destacado periódicamente
+  // Update highlighted schedule every second
   useEffect(() => {
     if (!referencia) return;
 
-    const actualizarHorario = () => {
-      const horarioMasCercano = encontrarHorarioMasCercano();
-      if (horarioMasCercano) {
-        setHorarioDestacado(horarioMasCercano.nombre);
-      }
+    const actualizar = () => {
+      const horario = encontrarHorarioMasCercano();
+      if (horario) setHorarioDestacado(horario.nombre);
     };
 
-    actualizarHorario();
-    const interval = setInterval(actualizarHorario, 1000); // Check every second
-
+    actualizar();
+    const interval = setInterval(actualizar, 1000);
     return () => clearInterval(interval);
   }, [referencia, dataDelDia]);
 
-  // Efecto para hacer scroll al horario destacado
+  // Scroll to highlighted schedule
   useEffect(() => {
-    if (!referencia) return;
-    const horarioMasCercano = encontrarHorarioMasCercano();
-    if (horarioMasCercano) {
+    if (!referencia || !horarioDestacado) return;
+    const ref = refsHorarios.current[horarioDestacado];
+    if (ref) {
       setTimeout(() => {
-        const ref = refsHorarios.current[horarioMasCercano.nombre];
-        if (ref?.scrollIntoView) {
-          ref.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }, 300); // Delay to allow modal to render
+        ref.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "nearest",
+        });
+      }, 350);
     }
-  }, [referencia]);
+  }, [horarioDestacado, referencia]);
 
-  // Agrupar referencias por nombre base
+  // Group references
   const referenciasAgrupadas = referenciasUnicas.reduce((acc, ref) => {
     if (!ref) return acc;
-    const partes = ref.split(" ");
-    const base = partes
+    const base = ref
+      .split(" ")
       .slice(1)
       .join(" ")
       .toLowerCase()
@@ -105,314 +103,323 @@ export default function MostrarHorariosPorDia() {
     return acc;
   }, {});
 
-  // Función para capitalizar texto
   const capitalizar = (texto) =>
     texto
       .split(" ")
       .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
       .join(" ");
 
-  // Estado y efecto para el tema oscuro
-  const [temaOscuro, setTemaOscuro] = useState(() => {
-    const guardado = localStorage.getItem("temaOscuro");
-    return guardado ? JSON.parse(guardado) : false;
-  });
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    const nuevo = !darkMode;
+    setDarkMode(nuevo);
+    localStorage.setItem("temaOscuro", nuevo);
+    document.documentElement.classList.toggle("dark", nuevo);
+  };
 
-  useEffect(() => {
-    localStorage.setItem("temaOscuro", JSON.stringify(temaOscuro));
-    // Apply or remove dark class to body for global theme effect
-    if (temaOscuro) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [temaOscuro]);
-
-  // Función para cambiar día manualmente
+  // Change day
   const cambiarDia = (nuevoDia) => {
     setSeleccionManual(true);
     setDiaActual(nuevoDia);
-    setReferencia(null); // Reset selected reference when day changes
-    setHorarioDestacado(null); // Reset highlighted schedule
+    setReferencia(null);
+    setHorarioDestacado(null);
   };
 
   return (
     <div
       className={`${
-        temaOscuro
-          ? "bg-gray-950 text-gray-100"
-          : "bg-gradient-to-br from-blue-100 to-purple-100 text-gray-900"
-      } min-h-screen pb-20 transition-colors duration-300 w-screen`}
+        darkMode ? "dark bg-slate-950 text-slate-50" : "bg-gradient-to-br from-blue-50 to-indigo-50 text-slate-900 py-4"
+      } min-h-screen w-full transition-colors duration-500 ease-in-out font-sans antialiased`}
+      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
       {/* Header */}
-      <header className="pt-10 pb-8 px-4 text-center">
-        <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-teal-500 to-indigo-600 bg-clip-text text-transparent mb-2 drop-shadow-md animate-bounce">
+      <header className="pt-12 pb-8 px-5 text-center">
+        <h1 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-teal-400 via-emerald-500 to-blue-600 bg-clip-text text-transparent mb-3 tracking-tight drop-shadow-sm">
           Kioraicoletivo
         </h1>
-        <p
-          className={`text-lg ${
-            temaOscuro ? "text-gray-300" : "text-gray-600"
-          }`}
-        >
+        <p className={`text-lg md:text-xl ${darkMode ? "text-slate-300" : "text-slate-600"} font-medium`}>
           Frecuencia de{" "}
-          {diaActual === "lunesAViernes"
-            ? "Lunes a Viernes"
-            : capitalizar(diaActual)}
+          <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-blue-500">
+            {diaActual === "lunesAViernes"
+              ? "Lunes a Viernes"
+              : capitalizar(diaActual)}
+          </span>
         </p>
 
-        {/* Selector de días */}
-        <div className="flex justify-center gap-3 mt-5 flex-wrap">
-          <button
-            onClick={() => cambiarDia("lunesAViernes")}
-            className={`px-5 py-2 rounded-full font-medium transition-all duration-300 shadow-md ${
-              diaActual === "lunesAViernes"
-                ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white transform scale-105"
-                : temaOscuro
-                ? "bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600"
-                : "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200"
-            }`}
-          >
-            Lunes a Viernes
-          </button>
-          <button
-            onClick={() => cambiarDia("sabados")}
-            className={`px-5 py-2 rounded-full font-medium transition-all duration-300 shadow-md ${
-              diaActual === "sabados"
-                ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white transform scale-105"
-                : temaOscuro
-                ? "bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600"
-                : "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200"
-            }`}
-          >
-            Sábados
-          </button>
-          <button
-            onClick={() => cambiarDia("domingos")}
-            className={`px-5 py-2 rounded-full font-medium transition-all duration-300 shadow-md ${
-              diaActual === "domingos"
-                ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white transform scale-105"
-                : temaOscuro
-                ? "bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600"
-                : "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200"
-            }`}
-          >
-            Domingos
-          </button>
+        {/* Day selector */}
+        <div className="flex justify-center gap-3 mt-8 flex-wrap max-w-lg mx-auto">
+          {[
+            { key: "lunesAViernes", label: "Lunes a Viernes" },
+            { key: "sabados", label: "Sábados" },
+            { key: "domingos", label: "Domingos" },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => cambiarDia(key)}
+              className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 shadow-md transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                diaActual === key
+                  ? "bg-gradient-to-r from-teal-500 to-blue-600 text-white shadow-lg scale-105"
+                  : darkMode
+                  ? "bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
+                  : "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm"
+              }`}
+              aria-pressed={diaActual === key}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {seleccionManual && (
           <button
             onClick={() => setSeleccionManual(false)}
-            className={`mt-4 text-sm px-4 py-1.5 rounded-full ${
-              temaOscuro
-                ? "bg-gray-800 text-teal-400 hover:bg-gray-700"
-                : "bg-blue-100 text-blue-700 hover:bg-blue-200"
-            } transition-colors duration-200`}
+            className={`mt-5 text-sm px-5 py-2 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 flex items-center justify-center gap-2 mx-auto ${
+              darkMode
+                ? "bg-slate-800 text-teal-400 hover:bg-slate-700 focus:ring-teal-500"
+                : "bg-blue-50 text-blue-700 hover:bg-blue-100 focus:ring-blue-300"
+            }`}
           >
-            Volver a horario automático
+            <FiRefreshCw className="w-4 h-4" />
+            Volver a automático
           </button>
         )}
       </header>
-      {/* Selector de rutas */}
-      <section className="px-4 max-w-6xl mx-auto mt-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Object.entries(referenciasAgrupadas).map(([base, refs], i) => (
-            <div
-              key={i}
-              className={`rounded-2xl p-6 shadow-xl transition-all duration-300 border-2 ${
-                temaOscuro
-                  ? "bg-gray-800 border-gray-700 hover:border-teal-500"
-                  : "bg-white border-gray-200 hover:border-blue-400"
-              }`}
-            >
-              <h2 className="text-xl font-bold uppercase text-center mb-5 flex items-center justify-center gap-2">
-                <span className="bg-gradient-to-r from-teal-500 to-indigo-600 bg-clip-text text-transparent">
-                  {capitalizar(base)}
-                </span>
-              </h2>
 
-              <div className="flex flex-col gap-4">
-                {refs.map((ref, j) => {
-                  const tipo = ref.toLowerCase().includes("vuelta")
-                    ? "Vuelta"
-                    : "Ida";
-                  const activo = referencia === ref;
-
-                  return (
-                    <button
-                      key={j}
-                      className={`rounded-lg px-5 py-3 font-semibold transition-all duration-200 shadow-sm ${
-                        activo
-                          ? "bg-gradient-to-r from-teal-500 to-indigo-600 text-white transform scale-[1.02] shadow-md"
-                          : temaOscuro
-                          ? "bg-gray-700 hover:bg-gray-600 text-gray-100 border border-gray-600"
-                          : "bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200"
-                      }`}
-                      onClick={() => setReferencia(ref)}
-                    >
-                      <span className="flex items-center justify-center gap-2">
-                        {tipo}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Botón de tema */}
-      <button
-        onClick={() => setTemaOscuro(!temaOscuro)}
-        className={`fixed right-6 bottom-6 z-30 p-3 rounded-full shadow-lg transition-all transform hover:scale-110 ${
-          temaOscuro ? "bg-gray-700 text-yellow-300" : "bg-gray-800 text-white"
+      {/* Route selector */}
+    <section className="px-5 max-w-6xl mx-auto mt-12">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    {Object.entries(referenciasAgrupadas).map(([base, refs]) => (
+      <motion.div
+        key={base}
+        whileHover={{ 
+          y: -6, 
+          boxShadow: darkMode
+            ? "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2)"
+            : "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+        }}
+        className={`rounded-2xl overflow-hidden transition-all duration-300 ${
+          darkMode
+            ? "bg-slate-800/80 border border-slate-700 shadow-lg shadow-black/10"
+            : "bg-white border border-slate-200 shadow-lg hover:shadow-2xl"
         }`}
-        aria-label="Toggle dark mode"
       >
-        {temaOscuro ? "☀️" : "🌙"}
+        {/* Header */}
+        <div
+          className={`px-6 py-5 text-center border-b transition-colors duration-200 ${
+            darkMode
+              ? "border-slate-700 bg-slate-800"
+              : "border-slate-100 bg-gradient-to-r from-slate-50 to-slate-100"
+          }`}
+        >
+          <h2 className="text-xl font-bold uppercase tracking-wide bg-gradient-to-r from-teal-400 to-blue-500 bg-clip-text text-transparent">
+            {capitalizar(base)}
+          </h2>
+        </div>
+
+        {/* Buttons (Ida / Vuelta) */}
+        <div className="p-1">
+          {refs.map((ref) => {
+            const tipo = ref.toLowerCase().includes("vuelta") ? "Vuelta" : "Ida";
+            const activo = referencia === ref;
+            const esVuelta = tipo === "Vuelta";
+
+            return (
+              <button
+                key={ref}
+                onClick={() => setReferencia(ref)}
+                aria-pressed={activo}
+                className={`w-full flex items-center gap-3 px-6 py-4 text-left transition-all duration-200 focus:outline-none focus:ring-2 ${
+                  darkMode ? "focus:ring-teal-500/50" : "focus:ring-blue-300"
+                } ${
+                  activo
+                    ? "bg-gradient-to-r from-teal-500 to-blue-600 text-white"
+                    : darkMode
+                    ? "bg-slate-800 text-slate-200"
+                    : "bg-slate-50 text-slate-700"
+                }`}
+              >
+                {/* Icon */}
+                <div
+                  className={`p-2.5 flex-shrink-0 transition-colors duration-200 ${
+                    activo
+                      ? "bg-white bg-opacity-20"
+                      : darkMode
+                      ? "bg-slate-700"
+                      : "bg-slate-100"
+                  }`}
+                >
+                  {esVuelta ? (
+                    <IoSync className={`w-5 h-5 ${activo ? "text-white" : darkMode ? "text-teal-400" : "text-teal-500"}`} />
+                  ) : (
+                    <IoArrowForward className={`w-5 h-5 ${activo ? "text-white" : darkMode ? "text-blue-400" : "text-blue-500"}`} />
+                  )}
+                </div>
+
+                {/* Text */}
+                <div>
+                  <span className={`font-semibold block transition-colors duration-200 ${activo ? "text-white" : ""}`}>
+                    {esVuelta ? "🔄 Vuelta" : "📍 Ida"}
+                  </span>
+                  <span
+                    className={`text-sm block mt-0.5 transition-colors duration-200 ${
+                      activo
+                        ? "text-teal-100"
+                        : darkMode
+                        ? "text-slate-400"
+                        : "text-slate-500"
+                    }`}
+                  >
+                    {capitalizar(base)}
+                  </span>
+                </div>
+
+                {/* Active indicator */}
+                {activo && (
+                  <div className="ml-auto">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </motion.div>
+    ))}
+  </div>
+</section>
+
+      {/* Dark mode toggle */}
+      <button
+        onClick={toggleDarkMode}
+        className={`fixed right-6 bottom-6 z-50 p-3.5 rounded-full shadow-xl transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center ${
+          darkMode
+            ? "bg-yellow-400 text-slate-900 focus:ring-yellow-300"
+            : "bg-slate-800 text-white focus:ring-slate-700"
+        }`}
+        aria-label={darkMode ? "Activar modo claro" : "Activar modo oscuro"}
+      >
+        {darkMode ? <FiSun className="w-6 h-6" /> : <FiMoon className="w-6 h-6" />}
       </button>
 
-      {/* Modal de horarios */}
+      {/* Schedule Modal */}
       <AnimatePresence>
         {referencia && (
           <motion.div
-            initial={{ opacity: 0, y: "100%" }} // Start from bottom
-            animate={{ opacity: 1, y: 0 }} // Slide up
-            exit={{ opacity: 0, y: "100%" }} // Slide down on exit
-            transition={{ type: "spring", damping: 25, stiffness: 350 }}
-            className={`fixed inset-0 z-40 ${
-              temaOscuro ? "bg-gray-900" : "bg-white"
-            } p-6 overflow-y-auto`}
+            initial={{ opacity: 0, y: "100%" }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: "100%" }}
+            transition={{ type: "spring", damping: 30, stiffness: 400 }}
+            className={`fixed inset-0 z-50 ${
+              darkMode ? "bg-slate-900" : "bg-white"
+            } overflow-y-auto pb-20`}
+            style={{ fontFamily: "Inter, sans-serif" }}
           >
-            <div className="max-w-2xl mx-auto relative">
-              <button
-                className={`${temaOscuro ? 'bg-gray-300' : 'bg-gray-700'} fixed top-6 right-6 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors z-50`}
+            <div className="max-w-2xl mx-auto px-6 pt-12 relative">
+              {/* Close Button */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className={`fixed top-6 right-6 p-3 rounded-full shadow-lg transition-colors z-50 ${
+                  darkMode ? "bg-slate-200" : "bg-slate-800"
+                }`}
                 onClick={() => setReferencia(null)}
-                aria-label="Cerrar horarios"
+                aria-label="Cerrar modal de horarios"
               >
                 <FiX
-                  className={`h-7 w-7 ${
-                    temaOscuro ? "text-gray-900" : "text-gray-300"
+                  className={`w-6 h-6 ${
+                    darkMode ? "text-slate-900" : "text-white"
                   }`}
                 />
-              </button>
+              </motion.button>
 
-              <h2 className="text-3xl font-bold mb-6 text-center pt-8">
-                <span className="bg-gradient-to-r from-teal-500 to-indigo-600 bg-clip-text text-transparent">
-                  Horarios{" "}
-                  {referencia.split(" ")[0].toLowerCase().includes("vuelta")
-                    ? "de Vuelta"
-                    : "de Ida"}
-                </span>
+              {/* Title */}
+              <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-teal-400 to-blue-600 bg-clip-text text-transparent">
+                Horarios {"  "}
+                {referencia.includes("Vuelta") ? "de vuelta" : "de ida"}
               </h2>
 
-              {dataDelDia.filter((item) => item.referencia === referencia)
-                .length > 0 ? (
-                <div className="space-y-5 pb-16">
-                  {" "}
-                  {/* Added pb-16 for extra scroll space */}
+              {/* Schedule List */}
+              {dataDelDia.filter((item) => item.referencia === referencia).length > 0 ? (
+                <div className="space-y-6 pb-20">
                   {dataDelDia
                     .filter((item) => item.referencia === referencia)
-                    .map((item, index) => (
-                      <motion.div
-                        key={index}
+                    .map((item) => (
+                      <div
+                        key={item.nombre}
                         ref={(el) => (refsHorarios.current[item.nombre] = el)}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }} // Staggered appearance
-                        className={`rounded-xl p-5 transition-all duration-300 border-2 ${
+                        className={`rounded-2xl p-6 transition-all duration-300 border-2 ${
                           horarioDestacado === item.nombre
-                            ? temaOscuro
-                              ? "bg-gradient-to-r from-teal-700 to-indigo-800 border-teal-500 shadow-lg"
-                              : "bg-gradient-to-r from-teal-400 to-indigo-500 border-teal-300 shadow-lg"
-                            : temaOscuro
-                            ? "bg-gray-800 border-gray-700"
-                            : "bg-white border-gray-200 shadow-md"
+                            ? "bg-gradient-to-r from-teal-500 to-blue-600 border-teal-400 shadow-xl text-white"
+                            : darkMode
+                            ? "bg-slate-800 border-slate-700"
+                            : "bg-white border-slate-200 shadow-md"
                         }`}
                       >
-                        <div className="flex items-start gap-4">
+                        <div className="flex items-start gap-5">
+                          {/* Clock Icon */}
                           <div
-                            className={`p-3 rounded-full ${
-                              // Changed to rounded-full for the icon background
+                            className={`p-4 rounded-full ${
                               horarioDestacado === item.nombre
-                                ? "bg-white bg-opacity-30"
-                                : temaOscuro
-                                ? "bg-gray-700"
-                                : "bg-gray-100"
+                                ? "bg-white bg-opacity-20"
+                                : darkMode
+                                ? "bg-slate-700"
+                                : "bg-slate-100"
                             }`}
                           >
-                            <FcClock className="text-3xl text-slate-900" />{" "}
-                            {/* Larger icon */}
+                            <FcClock className="w-8 h-8 text-black" />
                           </div>
-                          <div>
-                            <h3
-                              className={`text-xl font-bold ${
-                                // Larger and bolder time
+
+                          {/* Content */}
+                          <div className="flex-1">
+                            <h3 className="text-2xl font-bold mb-2">
+                              Salida:{" "}
+                              <span className="font-extrabold">
+                                {item.nombre} hs
+                              </span>
+                            </h3>
+
+                            <p
+                              className={`text-sm md:text-base leading-relaxed ${
                                 horarioDestacado === item.nombre
-                                  ? "text-white"
-                                  : temaOscuro
-                                  ? "text-white"
-                                  : "text-gray-800"
+                                  ? "text-teal-50"
+                                  : darkMode
+                                  ? "text-slate-300"
+                                  : "text-slate-600"
                               }`}
                             >
-                              Salida: {item.nombre} hs
-                            </h3>
-                            <div className="mt-2">
-                              {/* --- RECORRIDO CON ICONOS ANIMADOS --- */}
-                              <p
-                                className={`text-base ${
-                                  horarioDestacado === item.nombre
-                                    ? "text-gray-100"
-                                    : temaOscuro
-                                    ? "text-gray-300"
-                                    : "text-gray-600"
-                                }`}
-                              >
-                                <span className="font-semibold uppercase">
-                                  Recorrido:
-                                </span>{" "}
-                                <span className="capitalize">
-                                  {/* Usamos map para insertar el ícono entre los puntos del recorrido */}
-                                  {item.recorrido.map((punto, idx) => (
-                                    <React.Fragment key={idx}>
-                                      {punto}
-                                      {/* Renderiza el ícono solo si no es el último punto */}
-                                      {idx < item.recorrido.length - 1 && (
-                                        <IoArrowForward
-                                          className="inline-block mx-1.5 align-middle text-xl animate-pulse" // Clases para el ícono
-                                          style={{
-                                            color:
-                                              horarioDestacado ===
-                                                item.nombre && temaOscuro
-                                                ? "white" // Blanco para destacado en modo oscuro
-                                                : horarioDestacado ===
-                                                    item.nombre && !temaOscuro
-                                                ? "#FFFFFF" // Un azul vibrante para destacado en modo claro (ej: blue-600)
-                                                : temaOscuro
-                                                ? "#CBD5E0" // Un gris claro para no destacado en modo oscuro (gray-300)
-                                                : "#4A5568", // Un gris oscuro para no destacado en modo claro (gray-700)
-                                          }}
-                                        />
-                                      )}
-                                    </React.Fragment>
-                                  ))}
-                                </span>
-                              </p>
-                              {/* --- FIN RECORRIDO CON ICONOS ANIMADOS --- */}
-                            </div>
+                              <span className="font-semibold uppercase text-xs tracking-wider opacity-80">
+                                Recorrido:
+                              </span>{" "}
+                              <span className="capitalize">
+                                {item.recorrido.map((punto, idx) => (
+                                  <React.Fragment key={idx}>
+                                    {punto}
+                                    {idx < item.recorrido.length - 1 && (
+                                      <IoArrowForward
+                                        className="inline-block mx-2 text-lg align-middle"
+                                        style={{
+                                          color:
+                                            horarioDestacado === item.nombre
+                                              ? "#ffffff"
+                                              : darkMode
+                                              ? "#94a3b8"
+                                              : "#475569",
+                                        }}
+                                      />
+                                    )}
+                                  </React.Fragment>
+                                ))}
+                              </span>
+                            </p>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                 </div>
               ) : (
-                <div className="text-center py-10">
-                  <p
-                    className={`text-lg ${
-                      temaOscuro ? "text-gray-400" : "text-gray-500"
-                    }`}
-                  >
+                <div className="text-center py-20">
+                  <FiAlertCircle className="w-12 h-12 mx-auto mb-4 text-slate-400" />
+                  <p className={`text-xl ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                     No hay horarios disponibles para esta ruta.
                   </p>
                 </div>
