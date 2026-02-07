@@ -216,7 +216,7 @@ export default function MostrarHorariosPorDia() {
           >
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              className={`w-full max-w-2xl h-[100vh] sm:h-auto sm:max-h-[85vh] overflow-hidden flex flex-col ${
+              className={`w-full max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[85vh] overflow-hidden flex flex-col ${
                 darkMode ? "bg-slate-900" : "bg-slate-50"
               }`}
             >
