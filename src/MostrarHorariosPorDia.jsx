@@ -10,7 +10,6 @@ export default function MostrarHorariosPorDia() {
   const horarios = useObtenerHorarios();
   const [diaActual, setDiaActual] = useState("lunesAViernes");
   const [referencia, setReferencia] = useState(null);
-  const [horarioDestacado, setHorarioDestacado] = useState(null);
   const [seleccionManual, setSeleccionManual] = useState(false);
   const [busquedaModal, setBusquedaModal] = useState(""); 
   const [cargandoFiltro, setCargandoFiltro] = useState(false);
@@ -40,12 +39,27 @@ export default function MostrarHorariosPorDia() {
     }, {});
   }, [dataDelDia]);
 
+  // CORRECCIÓN: Filtrado sin duplicados
   const horariosFiltrados = useMemo(() => {
     const listado = dataDelDia.filter(h => h.referencia === referencia);
-    if (!busquedaModal.trim()) return listado;
-    return listado.filter(h => 
-      h.recorrido.some(p => p.toLowerCase().includes(busquedaModal.toLowerCase()))
-    );
+    
+    // Filtramos por búsqueda
+    const filtrados = busquedaModal.trim() === "" 
+      ? listado 
+      : listado.filter(h => h.recorrido.some(p => p.toLowerCase().includes(busquedaModal.toLowerCase())));
+
+    // Eliminamos duplicados basados en el nombre (Hora) para evitar repeticiones visuales
+    const unicos = [];
+    const nombresVistos = new Set();
+
+    filtrados.forEach(h => {
+      if (!nombresVistos.has(h.nombre)) {
+        nombresVistos.add(h.nombre);
+        unicos.push(h);
+      }
+    });
+
+    return unicos;
   }, [referencia, dataDelDia, busquedaModal]);
 
   const convertirNombreAHoras = (nombre) => {
@@ -74,8 +88,7 @@ export default function MostrarHorariosPorDia() {
 
   useEffect(() => {
     if (!referencia) return;
-    const targetSet = busquedaModal.trim() !== "" ? horariosFiltrados : dataDelDia.filter(h => h.referencia === referencia);
-    const targetNombre = obtenerMasCercano(targetSet);
+    const targetNombre = obtenerMasCercano(horariosFiltrados);
 
     if (targetNombre) {
       const timer = setTimeout(() => {
@@ -107,7 +120,6 @@ export default function MostrarHorariosPorDia() {
 
   return (
     <div className={`${darkMode ? "dark bg-[#0f172a] text-slate-200" : "bg-[#f8fafc] text-slate-900"} min-h-screen transition-colors duration-500 font-sans pb-20`}>
-      
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className={`absolute -top-24 -left-24 w-96 h-96 rounded-full blur-3xl opacity-20 ${darkMode ? "bg-indigo-500" : "bg-indigo-300"}`} />
         <div className={`absolute bottom-0 -right-24 w-80 h-80 rounded-full blur-3xl opacity-10 ${darkMode ? "bg-teal-500" : "bg-teal-300"}`} />
@@ -191,7 +203,7 @@ export default function MostrarHorariosPorDia() {
               <div className={`p-6 border-b ${darkMode ? 'border-slate-800' : 'border-slate-200'}`}>
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-black italic uppercase leading-none">Horarios: {referencia.split(" ").slice(1).join(" ")}</h2>
-                  <button onClick={() => setReferencia(null)} className={`p-2 rounded-full transition-colors ${darkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-200'}`}><FaTimes size={20} /></button>
+                  <button onClick={() => setReferencia(null)} className={`p-2 rounded-full transition-colors ${darkMode ? 'hover:bg-slate-800 text-white' : 'hover:bg-slate-200 text-slate-900'}`}><FaTimes size={20} /></button>
                 </div>
 
                 <div className="relative">
@@ -214,7 +226,6 @@ export default function MostrarHorariosPorDia() {
                 {horariosFiltrados.length > 0 ? (
                   horariosFiltrados.map(item => {
                     const esProximoActual = item.nombre === obtenerMasCercano(horariosFiltrados);
-
                     return (
                       <div
                         key={item.nombre}
@@ -244,18 +255,13 @@ export default function MostrarHorariosPorDia() {
                                 }`}>
                                   {p}
                                 </span>
-                                
                                 {i < item.recorrido.length - 1 && (
                                   <motion.div
                                     animate={{ x: [0, 3, 0] }}
                                     transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
                                     className="mx-1.5 flex items-center justify-center"
                                   >
-                                    <FaChevronRight 
-                                      className={`text-[8px] ${
-                                        esProximoActual ? 'text-white' : 'text-indigo-500'
-                                      }`} 
-                                    />
+                                    <FaChevronRight className={`text-[8px] ${esProximoActual ? 'text-white' : 'text-indigo-500'}`} />
                                   </motion.div>
                                 )}
                               </React.Fragment>
