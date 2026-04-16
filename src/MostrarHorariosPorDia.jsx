@@ -3,7 +3,7 @@ import { useObtenerHorarios } from "./customHooks/useObtenerHorarios";
 import { motion, AnimatePresence } from "framer-motion";
 import { FcClock } from "react-icons/fc";
 import { IoArrowForward, IoSync } from "react-icons/io5";
-import { FiChevronRight, FiSearch, FiAlertCircle, FiX, FiRefreshCw } from "react-icons/fi";
+import { FiChevronRight, FiSearch, FiAlertCircle, FiRefreshCw } from "react-icons/fi";
 import { FaSun, FaMoon, FaTimes, FaChevronRight } from "react-icons/fa";
 
 export default function MostrarHorariosPorDia() {
@@ -39,27 +39,21 @@ export default function MostrarHorariosPorDia() {
     }, {});
   }, [dataDelDia]);
 
-  // CORRECCIÓN: Filtrado sin duplicados
+  // CORRECCIÓN: Ahora permite múltiples servicios a la misma hora si tienen recorridos distintos
   const horariosFiltrados = useMemo(() => {
     const listado = dataDelDia.filter(h => h.referencia === referencia);
     
-    // Filtramos por búsqueda
     const filtrados = busquedaModal.trim() === "" 
       ? listado 
       : listado.filter(h => h.recorrido.some(p => p.toLowerCase().includes(busquedaModal.toLowerCase())));
 
-    // Eliminamos duplicados basados en el nombre (Hora) para evitar repeticiones visuales
-    const unicos = [];
-    const nombresVistos = new Set();
-
-    filtrados.forEach(h => {
-      if (!nombresVistos.has(h.nombre)) {
-        nombresVistos.add(h.nombre);
-        unicos.push(h);
-      }
-    });
-
-    return unicos;
+    // Eliminamos solo duplicados exactos (mismo nombre Y mismo recorrido)
+    return filtrados.filter((valor, indice, self) =>
+      self.findIndex(t => 
+        t.nombre === valor.nombre && 
+        JSON.stringify(t.recorrido) === JSON.stringify(valor.recorrido)
+      ) === indice
+    );
   }, [referencia, dataDelDia, busquedaModal]);
 
   const convertirNombreAHoras = (nombre) => {
@@ -83,7 +77,8 @@ export default function MostrarHorariosPorDia() {
         candidato = h.nombre;
       }
     });
-    return candidato || lista[0].nombre;
+    // Si no hay ninguno posterior hoy, devolvemos el primero del día (mañana)
+    return candidato || (lista.length > 0 ? lista[0].nombre : null);
   };
 
   useEffect(() => {
@@ -132,7 +127,7 @@ export default function MostrarHorariosPorDia() {
             darkMode ? "bg-white text-slate-900" : "bg-slate-900 text-white"
           }`}
         >
-          {darkMode ? <FaSun className="absolute"/> : <FaMoon className="absolute"/>}
+          {darkMode ? <FaSun /> : <FaMoon />}
         </button>
 
         <header className="max-w-4xl mx-auto text-center mb-12 pt-12">
@@ -224,11 +219,11 @@ export default function MostrarHorariosPorDia() {
 
               <div className="flex-1 overflow-y-auto p-6 space-y-4 pb-20">
                 {horariosFiltrados.length > 0 ? (
-                  horariosFiltrados.map(item => {
+                  horariosFiltrados.map((item, index) => {
                     const esProximoActual = item.nombre === obtenerMasCercano(horariosFiltrados);
                     return (
                       <div
-                        key={item.nombre}
+                        key={`${item.nombre}-${index}`} // Key única incluso si la hora se repite
                         ref={el => refsHorarios.current[item.nombre] = el}
                         className={`rounded-[2rem] p-6 border-2 transition-all duration-300 ${
                           esProximoActual ? "bg-indigo-600 border-indigo-400 text-white shadow-xl scale-[1.01]" : 
