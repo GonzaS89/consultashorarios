@@ -83,7 +83,7 @@ function Footer() {
               </div>
 
               {/* Tu nombre con el efecto Scramble */}
-              <span className="text-lg sm:text-sm font-black italic tracking-tighter text-emerald-600 dark:text-emerald-400 min-w-[110px]">
+              <span className="text-xs sm:text-sm font-black italic tracking-tighter text-emerald-600 dark:text-emerald-400 min-w-[110px]">
                 {displayText}
               </span>
 
