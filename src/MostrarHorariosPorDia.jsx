@@ -1,18 +1,23 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useObtenerHorarios } from "./customHooks/useObtenerHorarios";
 import { motion, AnimatePresence } from "framer-motion";
-import { FcClock } from "react-icons/fc";
-import { IoArrowForward, IoSync } from "react-icons/io5";
-import { FiChevronRight, FiSearch, FiAlertCircle, FiRefreshCw } from "react-icons/fi";
-import { FaSun, FaMoon, FaTimes, FaChevronRight } from "react-icons/fa";
+import { 
+  IoArrowForward, 
+  IoSync, 
+  IoSearch, 
+  IoClose, 
+  IoAlertCircle, 
+  IoSparkles, 
+  IoBusSharp 
+} from "react-icons/io5";
+import { FaSun, FaMoon, FaChevronRight, FaTimes } from "react-icons/fa";
 
 export default function MostrarHorariosPorDia() {
   const horarios = useObtenerHorarios();
   const [diaActual, setDiaActual] = useState("lunesAViernes");
   const [referencia, setReferencia] = useState(null);
   const [seleccionManual, setSeleccionManual] = useState(false);
-  const [busquedaModal, setBusquedaModal] = useState(""); 
-  const [cargandoFiltro, setCargandoFiltro] = useState(false);
+  const [busquedaModal, setBusquedaModal] = useState("");
   const refsHorarios = useRef({});
 
   const temaOscuro = localStorage.getItem("temaOscuro") === "true";
@@ -28,7 +33,7 @@ export default function MostrarHorariosPorDia() {
   }, [seleccionManual]);
 
   const dataDelDia = useMemo(() => horarios[diaActual] || [], [horarios, diaActual]);
-  
+
   const referenciasAgrupadas = useMemo(() => {
     const refs = [...new Set(dataDelDia.map((h) => h.referencia).filter(Boolean))];
     return refs.reduce((acc, ref) => {
@@ -39,28 +44,15 @@ export default function MostrarHorariosPorDia() {
     }, {});
   }, [dataDelDia]);
 
-  // CORRECCIÓN: Ahora permite múltiples servicios a la misma hora si tienen recorridos distintos
   const horariosFiltrados = useMemo(() => {
     const listado = dataDelDia.filter(h => h.referencia === referencia);
-    
-    const filtrados = busquedaModal.trim() === "" 
-      ? listado 
-      : listado.filter(h => h.recorrido.some(p => p.toLowerCase().includes(busquedaModal.toLowerCase())));
+    const filtrados = busquedaModal.trim() === "" ? listado : 
+      listado.filter(h => h.recorrido.some(p => p.toLowerCase().includes(busquedaModal.toLowerCase())));
 
-    // Eliminamos solo duplicados exactos (mismo nombre Y mismo recorrido)
     return filtrados.filter((valor, indice, self) =>
-      self.findIndex(t => 
-        t.nombre === valor.nombre && 
-        JSON.stringify(t.recorrido) === JSON.stringify(valor.recorrido)
-      ) === indice
+      self.findIndex(t => t.nombre === valor.nombre && JSON.stringify(t.recorrido) === JSON.stringify(valor.recorrido)) === indice
     );
   }, [referencia, dataDelDia, busquedaModal]);
-
-  const convertirNombreAHoras = (nombre) => {
-    if (!nombre) return 0;
-    const [horas, minutos] = nombre.split(":").map(Number);
-    return horas * 60 + minutos;
-  };
 
   const obtenerMasCercano = (lista) => {
     if (!lista || lista.length === 0) return null;
@@ -70,39 +62,21 @@ export default function MostrarHorariosPorDia() {
     let candidato = null;
 
     lista.forEach((h) => {
-      const minutosHorario = convertirNombreAHoras(h.nombre);
+      const [horas, minutos] = h.nombre.split(":").map(Number);
+      const minutosHorario = horas * 60 + minutos;
       const diff = minutosHorario - minutosAhora;
-      if (diff >= 0 && diff < minDiff) {
-        minDiff = diff;
-        candidato = h.nombre;
-      }
+      if (diff >= 0 && diff < minDiff) { minDiff = diff; candidato = h.nombre; }
     });
-    // Si no hay ninguno posterior hoy, devolvemos el primero del día (mañana)
     return candidato || (lista.length > 0 ? lista[0].nombre : null);
   };
 
   useEffect(() => {
     if (!referencia) return;
-    const targetNombre = obtenerMasCercano(horariosFiltrados);
-
-    if (targetNombre) {
-      const timer = setTimeout(() => {
-        const elemento = refsHorarios.current[targetNombre];
-        if (elemento) {
-          elemento.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }, 200); 
-      return () => clearTimeout(timer);
+    const target = obtenerMasCercano(horariosFiltrados);
+    if (target) {
+      setTimeout(() => refsHorarios.current[target]?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
     }
-  }, [referencia, busquedaModal, horariosFiltrados]);
-
-  useEffect(() => {
-    if (busquedaModal) {
-      setCargandoFiltro(true);
-      const timeout = setTimeout(() => setCargandoFiltro(false), 300);
-      return () => clearTimeout(timeout);
-    }
-  }, [busquedaModal]);
+  }, [referencia, horariosFiltrados]);
 
   const toggleDarkMode = () => {
     const nuevo = !darkMode;
@@ -111,155 +85,204 @@ export default function MostrarHorariosPorDia() {
     document.documentElement.classList.toggle("dark", nuevo);
   };
 
-  const capitalizar = (texto) => texto.split(" ").map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
+  const capitalizar = (t) => t.split(" ").map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
 
   return (
-    <div className={`${darkMode ? "dark bg-[#0f172a] text-slate-200" : "bg-[#f8fafc] text-slate-900"} min-h-screen transition-colors duration-500 font-sans pb-20`}>
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className={`absolute -top-24 -left-24 w-96 h-96 rounded-full blur-3xl opacity-20 ${darkMode ? "bg-indigo-500" : "bg-indigo-300"}`} />
-        <div className={`absolute bottom-0 -right-24 w-80 h-80 rounded-full blur-3xl opacity-10 ${darkMode ? "bg-teal-500" : "bg-teal-300"}`} />
-      </div>
-
-      <div className="relative z-10 container mx-auto px-4 py-8">
-        <button
-          onClick={toggleDarkMode}
-          className={`fixed right-6 top-6 w-12 h-12 rounded-2xl shadow-xl flex items-center justify-center text-xl z-50 transition-all active:scale-90 ${
-            darkMode ? "bg-white text-slate-900" : "bg-slate-900 text-white"
-          }`}
-        >
-          {darkMode ? <FaSun /> : <FaMoon />}
-        </button>
-
-        <header className="max-w-4xl mx-auto text-center mb-12 pt-12">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter mb-4 uppercase">
-              kiOrAi<span className="text-indigo-600 dark:text-indigo-400">CoLeTiVo</span>
-            </h1>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold text-xs uppercase tracking-[0.2em] mb-8">
-              <FcClock className="text-lg" />
-              {diaActual === "lunesAViernes" ? "Lunes a Viernes" : capitalizar(diaActual)}
-            </div>
-          </motion.div>
-
-          <div className="flex justify-center gap-2 p-1.5 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl w-fit mx-auto">
-            {[{k:"lunesAViernes", l:"LV"}, {k:"sabados", l:"SÁB"}, {k:"domingos", l:"DOM"}].map(d => (
-              <button
-                key={d.k}
-                onClick={() => { setSeleccionManual(true); setDiaActual(d.k); setBusquedaModal(""); }}
-                className={`px-6 py-2.5 rounded-xl font-black text-xs transition-all ${
-                  diaActual === d.k ? "bg-indigo-600 text-white shadow-lg" : "text-slate-500 hover:bg-slate-300/50"
-                }`}
+    <div className={`${darkMode ? "dark bg-[#020617] text-slate-100" : "bg-[#f8fafc] text-slate-900"} min-h-screen w-screen transition-colors duration-300 font-sans`}>
+      
+      {/* Header Estilo Mobile Premium */}
+      <header className="sticky top-0 z-40 bg-white/70 dark:bg-[#020617]/70 backdrop-blur-2xl border-b border-slate-200 dark:border-slate-800/50 px-6 py-5">
+        <div className="max-w-xl mx-auto flex justify-between items-center">
+          
+          <div className="flex items-center gap-3">
+            {/* Contenedor del Logo con Bus Animado */}
+          
+              <IoSparkles className="text-white text-lg z-10" />
+              <motion.div
+                initial={{ x: "-150%" }}
+                animate={{ x: "150%" }}
+                transition={{ repeat: Infinity, duration: 2, ease: "linear", repeatDelay: 1 }}
+                className="absolute opacity-30 text-white"
               >
-                {d.l}
-              </button>
-            ))}
-          </div>
-        </header>
+                <IoBusSharp size={20} />
+              </motion.div>
+         
 
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {Object.entries(referenciasAgrupadas).map(([base, refs]) => (
-            <div key={base} className={`rounded-[2.5rem] p-8 border-2 transition-all ${darkMode ? "bg-slate-800/40 border-slate-700/50 backdrop-brightness-75" : "bg-white border-slate-100 shadow-sm"}`}>
-              <h2 className="text-2xl font-black italic uppercase tracking-tighter mb-6 flex items-center gap-3">
-                <div className="w-1.5 h-8 bg-indigo-500 rounded-full" />
-                {capitalizar(base)}
-              </h2>
-              <div className="space-y-3">
-                {refs.map(ref => (
-                  <button
-                    key={ref}
-                    onClick={() => { setReferencia(ref); setBusquedaModal(""); }}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-100/50 dark:bg-slate-700/30 hover:bg-indigo-600 hover:text-white transition-all group"
-                  >
-                    <div className="flex items-center gap-3">
-                      {ref.toLowerCase().includes("vuelta") ? <IoSync /> : <IoArrowForward />}
-                      <span className="font-bold uppercase">{ref.toLowerCase().includes("vuelta") ? "Vuelta" : "Ida"}</span>
-                    </div>
-                    <FiChevronRight />
-                  </button>
-                ))}
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <h1 className="text-4xl font-black tracking-tighter leading-none uppercase italic">
+                  KiOrAi<span className="text-emerald-500">CoLeTiVo</span>
+                </h1>
+                <motion.div
+                  animate={{ y: [0, -2, 0] }}
+                  transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut" }}
+                  className="text-emerald-500"
+                >
+                  <IoBusSharp size={30} />
+                </motion.div>
+              </div>
+              {/* Barra de progreso decorativa */}
+              <div className="w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full mt-1.5 overflow-hidden">
+                <motion.div 
+                  className="h-full bg-emerald-500"
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                />
               </div>
             </div>
-          ))}
-        </section>
-      </div>
+          </div>
 
+          {/* <button onClick={toggleDarkMode} className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center transition-all active:scale-90 border border-transparent dark:border-slate-700">
+            {darkMode ? <FaSun className="text-amber-400" /> : <FaMoon className="text-slate-600" />}
+          </button> */}
+        </div>
+
+        {/* Tabs Segmentadas */}
+        <div className="max-w-xl mx-auto mt-5 p-1 bg-slate-200/50 dark:bg-slate-900/50 rounded-2xl flex border border-slate-200 dark:border-slate-800">
+          {[{ k: "lunesAViernes", l: "L-V" }, { k: "sabados", l: "Sáb" }, { k: "domingos", l: "Dom" }].map(d => (
+            <button
+              key={d.k}
+              onClick={() => { setSeleccionManual(true); setDiaActual(d.k); setBusquedaModal(""); }}
+              className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all ${
+                diaActual === d.k 
+                  ? "bg-white dark:bg-slate-800 shadow-md text-emerald-600 dark:text-emerald-400 scale-[1.02]" 
+                  : "text-slate-500"
+              }`}
+            >
+              {d.l}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      <main className="max-w-xl mx-auto p-6 pb-24 space-y-8">
+        {Object.entries(referenciasAgrupadas).map(([base, refs]) => (
+          <section key={base} className="space-y-4">
+            <h2 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">{capitalizar(base)}</h2>
+            <div className="grid gap-3">
+              {refs.map(ref => (
+                <button
+                  key={ref}
+                  onClick={() => { setReferencia(ref); setBusquedaModal(""); }}
+                  className="group relative flex items-center justify-between p-5 rounded-[2rem] bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 transition-all active:scale-[0.97] shadow-sm"
+                >
+                  <div className="flex items-center gap-5">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                      ref.toLowerCase().includes("vuelta") 
+                        ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" 
+                        : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    }`}>
+                      {ref.toLowerCase().includes("vuelta") ? <IoSync size={24}/> : <IoArrowForward size={24}/>}
+                    </div>
+                    <div className="text-left">
+                      <span className="block text-sm font-black uppercase tracking-tight">{ref.toLowerCase().includes("vuelta") ? "Regreso" : "Ida"}</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Paradas y horarios</span>
+                    </div>
+                  </div>
+                  <FaChevronRight className="text-slate-300 dark:text-slate-700" size={14} />
+                </button>
+              ))}
+            </div>
+          </section>
+        ))}
+      </main>
+
+      {/* Drawer Modal Estilo App */}
       <AnimatePresence>
         {referencia && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-brightness-75 p-0 sm:p-4"
+            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end"
           >
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              className={`w-full max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[85vh] overflow-hidden flex flex-col ${
-                darkMode ? "bg-slate-900 shadow-2xl" : "bg-slate-50 shadow-2xl"
-              }`}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="w-full h-[94vh] bg-slate-50 dark:bg-[#020617] rounded-t-[3rem] flex flex-col shadow-2xl overflow-hidden border-t border-slate-200 dark:border-slate-800"
             >
-              <div className={`p-6 border-b ${darkMode ? 'border-slate-800' : 'border-slate-200'}`}>
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-black italic uppercase leading-none">Horarios: {referencia.split(" ").slice(1).join(" ")}</h2>
-                  <button onClick={() => setReferencia(null)} className={`p-2 rounded-full transition-colors ${darkMode ? 'hover:bg-slate-800 text-white' : 'hover:bg-slate-200 text-slate-900'}`}><FaTimes size={20} /></button>
+              {/* Handle superior */}
+              <div className="w-16 h-1.5 bg-slate-300 dark:bg-slate-800 rounded-full mx-auto mt-4 mb-2 cursor-pointer" onClick={() => setReferencia(null)} />
+              
+              <div className="px-8 py-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold truncate tracking-tight uppercase leading-tight max-w-[250px]">{referencia.split(" ").slice(1).join(" ")}</h2>
+                  <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">En tiempo real</p>
                 </div>
+                <button onClick={() => setReferencia(null)} className="w-10 h-10 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-900 dark:text-white transition-transform active:scale-90">
+                  <FaTimes className="absolute text-xl"/>
+                </button>
+              </div>
 
+              <div className="px-8 mb-6">
                 <div className="relative">
-                  <input 
+                  <IoSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
                     type="text"
-                    placeholder="Buscar por parada..."
+                    placeholder="Buscar parada..."
                     value={busquedaModal}
                     onChange={(e) => setBusquedaModal(e.target.value)}
-                    className={`w-full pl-12 pr-4 py-4 rounded-2xl border-2 outline-none transition-all font-bold ${
-                      darkMode ? "bg-slate-800 border-slate-700 focus:border-indigo-500 text-white placeholder:text-slate-600" : "bg-white border-slate-200 focus:border-indigo-500"
-                    }`}
+                    className="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[1.5rem] focus:ring-2 focus:ring-emerald-500 outline-none font-semibold text-sm shadow-sm transition-all"
                   />
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                    {cargandoFiltro ? <FiRefreshCw className="animate-spin text-indigo-500" /> : <FiSearch className="text-slate-400" size={20} />}
-                  </div>
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 pb-20">
+              <div className="flex-1 overflow-y-auto px-8 pb-16 space-y-6">
                 {horariosFiltrados.length > 0 ? (
-                  horariosFiltrados.map((item, index) => {
-                    const esProximoActual = item.nombre === obtenerMasCercano(horariosFiltrados);
+                  horariosFiltrados.map((item, idx) => {
+                    const esProximo = item.nombre === obtenerMasCercano(horariosFiltrados);
                     return (
                       <div
-                        key={`${item.nombre}-${index}`} // Key única incluso si la hora se repite
+                        key={idx}
                         ref={el => refsHorarios.current[item.nombre] = el}
-                        className={`rounded-[2rem] p-6 border-2 transition-all duration-300 ${
-                          esProximoActual ? "bg-indigo-600 border-indigo-400 text-white shadow-xl scale-[1.01]" : 
-                          darkMode ? "bg-slate-800/50 border-slate-700 text-slate-300" : "bg-white border-slate-100 shadow-sm"
+                        className={`p-6 rounded-[2.5rem] border-2 transition-all ${
+                          esProximo 
+                            ? "bg-white dark:bg-slate-900 border-emerald-500 shadow-xl shadow-emerald-500/10" 
+                            : "bg-white dark:bg-slate-900/50 border-transparent shadow-sm"
                         }`}
                       >
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="text-4xl font-black tracking-tighter">{item.nombre}<span className="text-xs opacity-50 ml-1 italic font-bold">HS</span></span>
-                          {esProximoActual && (
-                            <span className="text-[10px] font-black bg-white text-indigo-600 px-3 py-1.5 rounded-full uppercase tracking-tighter animate-pulse">
-                              Próximo
-                            </span>
+                        <div className="flex justify-between items-start mb-8">
+                          <div className="flex items-baseline gap-1">
+                            <span className={`text-5xl font-black italic tracking-tighter ${esProximo ? "text-emerald-500" : ""}`}>{item.nombre}</span>
+                            <span className="text-xs font-black text-slate-400 uppercase">hs</span>
+                          </div>
+                          {esProximo && (
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500 rounded-full shadow-lg">
+                              <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
+                              <span className="text-[10px] text-white font-black uppercase tracking-tighter">Siguiente</span>
+                            </div>
                           )}
                         </div>
-                        
-                        <div className="flex flex-wrap items-center gap-y-3">
+
+                        {/* Timeline Recorrido */}
+                        <div className="space-y-0 ml-1">
                           {item.recorrido.map((p, i) => {
-                            const highlight = busquedaModal && p.toLowerCase().includes(busquedaModal.toLowerCase());
+                            const esPrimero = i === 0;
+                            const esUltimo = i === item.recorrido.length - 1;
+                            const match = busquedaModal && p.toLowerCase().includes(busquedaModal.toLowerCase());
+
                             return (
-                              <React.Fragment key={i}>
-                                <span className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase transition-all ${
-                                  highlight ? "bg-yellow-400 text-slate-900 scale-110 shadow-lg z-10" : 
-                                  esProximoActual ? "bg-white/10 text-white" : "bg-slate-500/10"
-                                }`}>
-                                  {p}
-                                </span>
-                                {i < item.recorrido.length - 1 && (
-                                  <motion.div
-                                    animate={{ x: [0, 3, 0] }}
-                                    transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                                    className="mx-1.5 flex items-center justify-center"
-                                  >
-                                    <FaChevronRight className={`text-[8px] ${esProximoActual ? 'text-white' : 'text-indigo-500'}`} />
-                                  </motion.div>
-                                )}
-                              </React.Fragment>
+                              <div key={i} className="flex gap-5">
+                                <div className="flex flex-col items-center">
+                                  <div className={`w-3.5 h-3.5 rounded-full border-2 transition-colors duration-500 ${
+                                    match ? "bg-emerald-500 border-emerald-200" : 
+                                    esPrimero || esUltimo ? "bg-slate-900 dark:bg-white border-transparent" : "bg-slate-200 dark:bg-slate-800 border-transparent"
+                                  }`} />
+                                  {!esUltimo && <div className="w-[1px] h-10 bg-slate-200 dark:bg-slate-800" />}
+                                </div>
+                                <div className="flex flex-col -mt-1 pb-6">
+                                  <span className={`text-[15px] uppercase font-bold tracking-tight transition-all ${
+                                    match ? "text-emerald-600 dark:text-emerald-400 scale-105" : 
+                                    esPrimero || esUltimo ? "text-slate-900 dark:text-white" : "text-slate-500"
+                                  }`}>
+                                    {p}
+                                  </span>
+                                  {(esPrimero || esUltimo) && (
+                                    <span className="text-[8px] uppercase font-black text-emerald-600/60 dark:text-emerald-400/60 tracking-[0.15em] mt-0.5">
+                                      {esPrimero ? "Salida" : "Final"}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             );
                           })}
                         </div>
@@ -267,9 +290,9 @@ export default function MostrarHorariosPorDia() {
                     );
                   })
                 ) : (
-                  <div className="text-center py-20">
-                    <FiAlertCircle className="mx-auto text-5xl text-slate-500/20 mb-4" />
-                    <p className="font-black text-slate-500 uppercase tracking-widest text-sm">Sin coincidencias</p>
+                  <div className="text-center py-24 opacity-20">
+                    <IoAlertCircle size={64} className="mx-auto mb-4" />
+                    <p className="font-black uppercase tracking-widest text-sm text-slate-500">Sin servicios disponibles</p>
                   </div>
                 )}
               </div>
