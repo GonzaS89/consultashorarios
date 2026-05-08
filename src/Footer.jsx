@@ -44,7 +44,7 @@ function Footer() {
   return (
     <footer className="w-full fixed bottom-0 z-30">
       {/* Glassmorphism Container */}
-      <div className="backdrop-blur-xl bg-white/70 dark:bg-[#020617]/90 border-t border-slate-200 dark:border-emerald-500/20 py-3">
+      <div className="backdrop-blur-xl bg-white dark:bg-[#020617]/90 border-t border-slate-200 dark:border-emerald-500/20 py-3">
         <div className="max-w-xl mx-auto px-6 flex justify-center items-center">
           
           {/* Layout con "Desarrollado por" recuperado */}

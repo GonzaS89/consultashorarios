@@ -122,14 +122,14 @@ export default function MostrarHorariosPorDia() {
                 </motion.div>
               </div>
               {/* Barra de progreso decorativa */}
-              <div className="w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full mt-1.5 overflow-hidden">
+              {/* <div className="w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full mt-1.5 overflow-hidden">
                 <motion.div 
                   className="h-full bg-emerald-500"
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
                   transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
                 />
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -198,7 +198,7 @@ export default function MostrarHorariosPorDia() {
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="w-full h-[100vh] bg-slate-50 dark:bg-[#020617] lg:rounded-t-[3rem]  flex flex-col shadow-2xl overflow-hidden border-t border-slate-200 dark:border-slate-800"
+              className="w-full h-[100dvh] bg-slate-50 dark:bg-[#020617] lg:rounded-t-[3rem]  flex flex-col shadow-2xl overflow-hidden border-t border-slate-200 dark:border-slate-800"
             >
               {/* Handle superior */}
               <div className="w-16 h-1.5 bg-slate-300 dark:bg-slate-800 rounded-full mx-auto mt-4 mb-2 cursor-pointer" onClick={() => setReferencia(null)} />
