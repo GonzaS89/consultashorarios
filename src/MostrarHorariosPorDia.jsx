@@ -278,7 +278,7 @@ export default function MostrarHorariosPorDia() {
                                     <div className="flex items-center gap-1 mt-0.5">
                                       <div className={`w-1 h-1 rounded-full ${esProximo ? "bg-emerald-500" : "bg-slate-400"}`} />
                                       <span className={`text-[8px] uppercase font-black tracking-[0.1em] ${esProximo ? "text-emerald-600/70" : "text-slate-400"}`}>
-                                        {esPrimero ? "Punto de Partida" : "Terminal"}
+                                        {esPrimero ? "Punto de Partida" : "Fin del recorrido"}
                                       </span>
                                     </div>
                                   )}
