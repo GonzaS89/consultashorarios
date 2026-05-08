@@ -98,7 +98,7 @@ export default function MostrarHorariosPorDia() {
                 transition={{ repeat: Infinity, duration: 2, ease: "linear", repeatDelay: 1 }}
                 className="absolute opacity-30 text-emerald-500"
               >
-                <IoBusSharp size={20} />
+                {/* <IoBusSharp size={20} /> */}
               </motion.div>
             </div>
 
