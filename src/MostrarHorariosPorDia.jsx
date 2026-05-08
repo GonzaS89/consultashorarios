@@ -91,7 +91,7 @@ export default function MostrarHorariosPorDia() {
     <div className={`${darkMode ? "dark bg-[#020617] text-slate-100" : "bg-[#f8fafc] text-slate-900"} min-h-screen w-screen transition-colors duration-300 font-sans`}>
       
       {/* Header Estilo Mobile Premium */}
-      <header className="sticky top-0 z-40 bg-white/70 dark:bg-[#020617]/70 backdrop-blur-2xl border-b border-slate-200 dark:border-slate-800/50 px-6 py-5">
+      <header className="sticky backdrop-blur-md top-0 z-40 bg-white/70 dark:bg-[#020617]/70 border-b border-slate-200 dark:border-slate-800/50 px-6 py-5">
         <div className="max-w-xl mx-auto flex justify-between items-center">
           
           <div className="flex items-center gap-3">
@@ -193,12 +193,12 @@ export default function MostrarHorariosPorDia() {
         {referencia && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end"
+            className="fixed inset-0 z-50 bg-slate-950/80 flex items-end"
           >
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="w-full h-[94vh] bg-slate-50 dark:bg-[#020617] rounded-t-[3rem] flex flex-col shadow-2xl overflow-hidden border-t border-slate-200 dark:border-slate-800"
+              className="w-full h-[100vh] bg-slate-50 dark:bg-[#020617] lg:rounded-t-[3rem]  flex flex-col shadow-2xl overflow-hidden border-t border-slate-200 dark:border-slate-800"
             >
               {/* Handle superior */}
               <div className="w-16 h-1.5 bg-slate-300 dark:bg-slate-800 rounded-full mx-auto mt-4 mb-2 cursor-pointer" onClick={() => setReferencia(null)} />
