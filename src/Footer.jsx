@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoTerminal, IoCheckmarkCircle, IoCodeSlash } from "react-icons/io5";
+import { IoCheckmarkCircle, IoCodeSlash } from "react-icons/io5";
 
 function Footer() {
   const name = "SINHG GONZALO";
@@ -43,19 +43,18 @@ function Footer() {
 
   return (
     <footer className="w-full fixed bottom-0 z-30">
-      {/* Glassmorphism Container */}
-      <div className="backdrop-blur-xl bg-white dark:bg-[#020617]/90 border-t border-slate-200 dark:border-emerald-500/20 py-3">
+      {/* Glassmorphism Container - Solo modo claro */}
+      <div className="backdrop-blur-xl bg-white/90 border-t border-slate-200 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
         <div className="max-w-xl mx-auto px-6 flex justify-center items-center">
           
-          {/* Layout con "Desarrollado por" recuperado */}
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 shrink-0">
+            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 shrink-0">
               Desarrollado por
             </span>
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="relative flex items-center gap-3 px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-emerald-500/5 border border-slate-200 dark:border-emerald-500/20 min-w-[170px] font-mono overflow-hidden shadow-inner"
+              className="relative flex items-center gap-3 px-4 py-1.5 rounded-xl bg-slate-50 border border-slate-200 min-w-[170px] font-mono overflow-hidden shadow-inner"
             >
               {/* Icono de estado dinámico */}
               <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
@@ -83,13 +82,13 @@ function Footer() {
               </div>
 
               {/* Tu nombre con el efecto Scramble */}
-              <span className="text-xs sm:text-sm font-black italic tracking-tighter text-emerald-600 dark:text-emerald-400 min-w-[110px]">
+              <span className="text-xs sm:text-sm font-black italic tracking-tighter text-emerald-600 min-w-[110px]">
                 {displayText}
               </span>
 
               {/* Efecto de Scanline (barrido de monitor) */}
               <motion.div 
-                className="absolute inset-0 w-full h-[40%] bg-gradient-to-b from-transparent via-emerald-500/10 to-transparent pointer-events-none"
+                className="absolute inset-0 w-full h-[40%] bg-gradient-to-b from-transparent via-emerald-500/5 to-transparent pointer-events-none"
                 animate={{ y: ["-100%", "300%"] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
               />
@@ -99,7 +98,7 @@ function Footer() {
       </div>
       
       {/* Safe Area para dispositivos mobile */}
-      <div className="h-1.5 w-full bg-white dark:bg-[#020617]" />
+      <div className="h-1.5 w-full bg-white" />
     </footer>
   );
 }
