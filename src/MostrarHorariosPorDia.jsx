@@ -97,7 +97,7 @@ export default function MostrarHorariosPorDia() {
     const llegada = `• ${item.recorrido[item.recorrido.length - 1].toUpperCase()}`;
     const puntosMedios = item.recorrido.slice(1, -1).map(p => `• ${p.toUpperCase()}`).join('\n');
 
-    const mensaje = `🕒 *PRÓXIMO COLECTIVO*
+    const mensaje = `🕒 *ËSTE ES EL DETALLE DEL HORARIO QUE COMPARTISTE*
 __________________________
 
 🚌 *Línea:* ${lineaNombre}
