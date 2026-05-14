@@ -107,7 +107,7 @@ __________________________
 📍 *Punto de Partida:*
 ${salida}
 
-✨ *Pasar por:*
+✨ *Pasa por:*
 ${puntosMedios || "DIRECTO"}
 
 🏁 *Fin del recorrido:*
